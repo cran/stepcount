@@ -1,30 +1,15 @@
-#' Install the `stepcount` Python Module
+#' Check the `stepcount` Python Module
 #'
-#' @param packages packages to install.
-#' If `stepcount` is not included, it will be added.  This package is
-#' known to work with `stepcount==3.2.4`
-#' @param ... Additional arguments to pass to [reticulate::py_install()],
-#' other than `pip` (`pip = TRUE` enforced)
 #'
-#' @return Output of [reticulate::py_install]
+#' @return A logical value indicating whether the `stepcount` Python module is available.
 #' @export
 #' @rdname stepcount_setup
 #' @examples
-#' if (have_stepcount()) {
-#'    stepcount_version()
+#' \donttest{
+#'   if (have_stepcount()) {
+#'      stepcount_version()
+#'   }
 #' }
-install_stepcount = function(packages = "stepcount",
-                             ...) {
-  if (!any(grepl("^stepcount", trimws(tolower(packages))))) {
-    packages = unique(c(packages, "stepcount"))
-  }
-  reticulate::py_install(
-    packages = packages,
-    pip = TRUE, ...)
-}
-
-#' @export
-#' @rdname stepcount_setup
 have_stepcount = function() {
   reticulate::py_module_available("stepcount")
 }
@@ -36,7 +21,7 @@ stepcount_check = function() {
     stepcount_version()
   }, silent = TRUE)
   have_stepcount() && !inherits(step_version, "try-error") &&
-    length(step_version) > 0
+    length(step_version) > 0 && package_version(step_version) >= package_version("3.11.0")
 }
 
 
@@ -55,4 +40,3 @@ module_version = function(module = "numpy") {
 stepcount_version = function() {
   module_version("stepcount")
 }
-

@@ -55,10 +55,13 @@ sc_model_params = function(model_type, pytorch_device) {
 #'
 #' @inheritParams sc_load_model
 #' @examples
-#' file = system.file("extdata/P30_wrist100.csv.gz", package = "stepcount")
-#' if (stepcount_check()) {
-#'   out = stepcount(file = file)
-#'   st = out$step_times
+#' \donttest{
+#'   library(magrittr)
+#'   file = system.file("extdata/P30_wrist100.csv.gz", package = "stepcount")
+#'   if (stepcount_check()) {
+#'     out = stepcount(file = file)
+#'     st = out$step_times
+#'   }
 #' }
 #' \dontrun{
 #'   file = system.file("extdata/P30_wrist100.csv.gz", package = "stepcount")
@@ -99,12 +102,16 @@ stepcount = function(
     warning(
       paste0(
         "stepcount_check() indicates the stepcount functions may not be ",
-        " available, may need to run stepcount::use_stepcount_condaenv()")
+        " available, may need to run reticulate::py_install('stepcount', pip = TRUE)")
     )
   }
+  assertthat::assert_that(
+    # assertthat::is.readable(file), # this is taken care of later
+    is.null(sample_rate) || assertthat::is.count(sample_rate)
+  )
 
   params = sc_model_params(model_type = model_type,
-                             pytorch_device = pytorch_device)
+                           pytorch_device = pytorch_device)
   model_type = params$model_type
   pytorch_device = params$pytorch_device
   # not passed
@@ -186,22 +193,16 @@ stepcount_with_model = function(
     keep_data = FALSE
 ) {
 
+  assertthat::assert_that(
+    is.null(sample_rate) || assertthat::is.count(sample_rate)
+  )
   if (!stepcount_check()) {
     warning(
       paste0(
         "stepcount_check() indicates the stepcount functions may not be ",
-        " available, may need to run stepcount::use_stepcount_condaenv()")
+        " available, may need to run reticulate::py_install('stepcount', pip = TRUE)")
     )
   }
-  params = sc_model_params(model_type = model_type,
-                             pytorch_device = pytorch_device)
-  model_type = params$model_type
-  pytorch_device = params$pytorch_device
-  resample_hz = params$resample_hz
-
-  model$verbose = verbose
-  model$wd$verbose = verbose
-  model$wd$device = pytorch_device
 
   file = transform_data_to_files(file = file, verbose = verbose)
   remove_file = attr(file, "remove_file")
@@ -212,6 +213,19 @@ stepcount_with_model = function(
       file.remove(file)
     }, add = TRUE)
   }
+  assertthat::assert_that(
+    sapply(file, assertthat::is.readable)
+  )
+
+  params = sc_model_params(model_type = model_type,
+                           pytorch_device = pytorch_device)
+  model_type = params$model_type
+  pytorch_device = params$pytorch_device
+  resample_hz = params$resample_hz
+
+  model$verbose = verbose
+  model$wd$verbose = verbose
+  model$wd$device = pytorch_device
 
   final_out = vector(mode = "list", length = length(file))
   for (ifile in seq_len(length(file))) {
@@ -233,6 +247,7 @@ stepcount_with_model = function(
                   keep_pandas = TRUE)
     data = out$data
     info = out$info
+    rm(out); gc()
 
     if (verbose) {
       message("Predicting from Model")
@@ -250,10 +265,15 @@ stepcount_with_model = function(
     }
     result = model$predict_from_frame(data = data)
 
+    if (!keep_data) {
+      rm(data); gc()
+    }
     if (verbose) {
       message("Processing Result")
     }
     out = process_stepcount_result(result = result, model = model)
+    rm(result); gc()
+
     if (requireNamespace("dplyr", quietly = TRUE)) {
       out$walking = dplyr::as_tibble(out$walking)
       out$steps = dplyr::as_tibble(out$steps)
@@ -293,12 +313,13 @@ stepcount_with_model = function(
 # }
 
 
-process_stepcount_result = function(result, model, tz = "UTC") {
-  W = convert_to_df(reticulate::py_to_r(result[[1]]), colname = "walking",
+process_stepcount_result = function(result, model, tz = "UTC",
+                                    py_to_r_fn = reticulate::py_to_r) {
+  W = convert_to_df(py_to_r_fn(result[[1]]), colname = "walking",
                     tz = tz)
   if (length(result) > 2) {
     T_steps = try({
-      reticulate::py_to_r(result[[2]])
+      py_to_r_fn(result[[2]])
     })
     if (!inherits(T_steps, "try-error")) {
       T_steps = unname(c(T_steps))
@@ -320,7 +341,7 @@ process_stepcount_result = function(result, model, tz = "UTC") {
   # summary_adj = sc$summarize(result,
   #                            reticulate::py_to_r(model$steptol),
   #                            adjust_estimates = TRUE)
-  result = reticulate::py_to_r(result)
+  result = py_to_r_fn(result)
   result = convert_to_df(result, tz = tz)
 
   result$time = lubridate::floor_date(result$time, unit = "1 second")

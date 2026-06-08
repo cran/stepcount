@@ -1,6 +1,6 @@
 Package: stepcount
 Title: Estimate Step Counts from 'Accelerometry' Data
-Version: 0.3.2
+Version: 0.5.0
 Authors@R: 
     person(given = "John",
            family = "Muschelli",
@@ -12,13 +12,16 @@ Description: Interfaces the 'stepcount' Python
     step counts and other activities from 'accelerometry' data.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
-Imports: assertthat, curl, lubridate, magrittr, readr, reticulate
-Suggests: tidyr, dplyr, ggplot2, testthat (>= 3.0.0)
+Imports: assertthat, curl, lubridate, magrittr, readr, reticulate (>=
+        1.42.0), rlang
+Suggests: tidyr, dplyr, ggplot2, testthat (>= 3.0.0), spelling
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
+Language: en-US
 NeedsCompilation: no
-Packaged: 2024-10-01 20:53:56 UTC; johnmuschelli
-Author: John Muschelli [aut, cre] (<https://orcid.org/0000-0001-6469-1750>)
+Packaged: 2026-06-08 15:49:19 UTC; johnmuschelli
+Author: John Muschelli [aut, cre] (ORCID:
+    <https://orcid.org/0000-0001-6469-1750>)
 Maintainer: John Muschelli <muschellij2@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-10-02 17:00:02 UTC
+Date/Publication: 2026-06-08 16:10:02 UTC
