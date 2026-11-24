@@ -1,6 +1,6 @@
 Package: stepcount
 Title: Estimate Step Counts from 'Accelerometry' Data
-Version: 0.6.0
+Version: 0.7.0
 Authors@R: 
     person(given = "John",
            family = "Muschelli",
@@ -20,9 +20,9 @@ Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 Language: en-US
 NeedsCompilation: no
-Packaged: 2026-08-21 12:20:37 UTC; johnmuschelli
+Packaged: 2026-11-24 18:29:47 UTC; johnmuschelli
 Author: John Muschelli [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-6469-1750>)
 Maintainer: John Muschelli <muschellij2@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-08-21 16:00:02 UTC
+Date/Publication: 2026-11-24 18:50:02 UTC
